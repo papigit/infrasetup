@@ -1,0 +1,6 @@
+---
+- name: jdk installation
+  hosts: "{{ remote_server }}"
+  user: "{{ remote_user }}"
+  roles:
+   - name: jdk

@@ -1,0 +1,25 @@
+---
+- name: Create Jboss Directory
+  file:
+   path: "/{{ jboss_dir }}/eap/6.4"
+   state: directory
+   recurse: yes
+   mode: 0755
+
+- name: Download Jboss Package
+  shell: "./s3fetch.sh binaries {{ jboss6_file }} {{ download_location }}"
+  args:
+    chdir: "/tmp/"
+    warn: false
+
+- name: Install Jboss
+  unarchive:
+   src: "{{ download_location }}/{{ jboss6_file }}"
+   dest: "/{{ jboss_dir }}/eap/6.4"
+   copy: no
+
+- name: Setting Jboss user profile
+  template:
+   src: profile.j2
+   dest: "{{ jboss_user_home }}/.bashrc"
+   mode: 0750

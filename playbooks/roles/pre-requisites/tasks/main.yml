@@ -1,0 +1,167 @@
+---
+- name: Check if aws cli is already installed
+  shell: which aws
+  register: aws_check
+  ignore_errors: true
+  become: true
+
+- name: Check to see if pip is already installed.
+  command: "pip --version"
+  ignore_errors: true
+  changed_when: false
+  register: pip_is_installed
+  become: true
+
+- name: Giving RWX Permissions to tmp dir
+  file:
+   path: /tmp
+   mode: 1777
+  become: true
+
+- name: Create root directories
+  file:
+   path: "/{{ item }}"
+   state: directory
+   mode: 0777
+   recurse: yes
+  become: true
+  with_items:
+      - "{{ base_dir }}"
+      - "{{ jboss_dir }}"
+
+- name: install zip/unzip, tar, ksh and other required packages
+  yum: name={{ system_packages }} state=present
+  become: true
+
+########################## If No AWS CLI ############################
+- name: Transfer local packages
+  copy:
+   src: "{{ pip_file }}"
+   dest: "{{ download_location }}/{{ pip_file }}"
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+- name: Transfer pexpect packages
+  copy:
+   src: "{{ pexpect_file }}"
+   dest: "{{ download_location }}/{{ pexpect_file }}"
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+- name: Transfer pip file packages
+  copy:
+   src: "{{ awscli_package }}"
+   dest: "{{ download_location }}/{{ awscli_package }}"
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+- name: Unarchive pip tar
+  unarchive:
+   src: "{{ download_location }}/{{ pip_file }}"
+   dest:  "{{ download_location }}"
+   copy: no
+   owner: ec2-user
+   group: ec2-user
+  become: true
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+- name: Install PIP
+  command: /bin/bash -c "python setup.py install" chdir={{ download_location }}/pip-19.2.2
+  become: true
+  ignore_errors: yes
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+- name: install Cli and pexpect Pacakges
+  pip:
+   name: file:{{ download_location }}/{{ item }}
+  become: true
+  with_items:
+      - "{{ awscli_package }}"
+      - "{{ pexpect_file }}"
+  when: ((aws_check.stdout.find('no aws in') != -1)or(aws_check.stderr.find('no aws in') != -1))
+
+# - name: Confiure aws
+#   include: tasks/awsConfigure.yml
+################################################################################################
+
+- name: Generate script file to download src from s3
+  template:
+   src: s3fetch.j2
+   dest: /tmp/s3fetch.sh
+   mode: 0777
+  become: true
+
+- name: Create Source directory
+  file:
+   path: "{{ download_location }}"
+   state: directory
+   mode: 0777
+   owner: ec2-user
+   group: ec2-user
+  become: true
+
+- name: download pre-requiste src in location {{ download_location }}
+  shell: "./s3fetch.sh binaries {{ item }} {{ download_location }}"
+  args:
+    chdir: "/tmp/"
+    warn: false
+  become: true
+  with_items:
+      - "{{ setuptools_file }}"
+      - "{{ pip_file }}"
+      - "{{ pexpect_file }}"
+      - "{{ future_file }}"
+      - "{{ dateutils_file }}"
+      - "{{ jmespath_file }}"
+      - "{{ botocore_file }}"
+      - "{{ s3transfer_file }}"
+      - "{{ boto_file }}"
+      - "{{ pycrypto_file }}"
+      # - "{{ ptyprocess_file }}"
+      # - "{{ docutils_file }}"
+      # - "{{ futures_file }}"
+
+- name: Unarchive pip tar
+  unarchive:
+   src: "{{ download_location }}/{{ pip_file }}"
+   dest:  "{{ download_location }}"
+   copy: no
+   owner: ec2-user
+   group: ec2-user
+  become: true
+
+- name: Install PIP
+  command: /bin/bash -c "python setup.py install" chdir={{ download_location }}/pip-19.2.2
+  become: true
+  ignore_errors: yes
+
+- name: Unarchive setup Tools zip file
+  shell: /bin/bash -c "unzip -o {{ download_location }}/{{ setuptools_file }}" chdir={{ download_location }}
+  become: true
+  ignore_errors: yes
+
+- name: Install setup Tools
+  command: /bin/bash -c "python setup.py install" chdir={{ download_location }}/setuptools-41.1.0
+  become: true
+  ignore_errors: yes
+
+- name: install python packages
+  pip:
+   name: file:{{ download_location }}/{{ item }}
+  become: true
+  ignore_errors: yes
+  with_items:
+      # - "{{ ptyprocess_file }}"
+      - "{{ pexpect_file }}"
+      # - "{{ futures_file }}"
+      - "{{ dateutils_file }}"
+      # - "{{ docutils_file }}"
+      - "{{ jmespath_file }}"
+      - "{{ botocore_file }}"
+      - "{{ s3transfer_file }}"
+      - "{{ boto_file }}"
+      - "{{ pycrypto_file }}"
+
+- name: Execute permissions for python packages
+  file:
+   path: /usr/lib/python2.7
+   mode: 0775
+   recurse: yes
+  become: true

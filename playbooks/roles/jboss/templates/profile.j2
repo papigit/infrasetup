@@ -1,0 +1,12 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# User specific aliases and functions
+JAVA_HOME={{ java_home }}
+JBOSS_HOME={{ jboss_home }}
+export JAVA_HOME JBOSS_HOME
+export PATH=$JAVA_HOME/bin:$PATH

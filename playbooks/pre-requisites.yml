@@ -1,0 +1,6 @@
+---
+- name: installing pre-requisites
+  hosts: "{{ remote_server }}"
+  user: "{{ remote_user }}"
+  roles:
+   - name: pre-requisites

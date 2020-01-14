@@ -1,0 +1,78 @@
+#!groovy
+
+import java.text.SimpleDateFormat;
+
+/*
+properties(
+	parameters([string(defaultValue: '', description: 'Enter the Ip Address', name: 'ipAddress')]), pipelineTriggers([]))
+
+*/
+
+node {
+
+        stage('Clean workspace') {
+            deleteDir()
+        } 
+
+        stage('Checkout source') {
+            checkout scm
+        }
+        
+        stage('Retrieve repository details') {
+                   checkoutVars = checkout scm 
+                   env.GIT_COMMIT = checkoutVars.GIT_COMMIT
+                   env.GIT_BRANCH = checkoutVars.GIT_BRANCH
+                   env.GIT_LOCAL_BRANCH = checkoutVars.GIT_LOCAL_BRANCH
+                   env.GIT_PREVIOUS_COMMIT = checkoutVars.GIT_PREVIOUS_COMMIT
+                   env.GIT_URL = checkoutVars.GIT_URL     
+                  }
+
+        stage('Plan Terraform') { 
+                 sh "cd ${WORKSPACE}/terraform/source/scripts && chmod -R 755 * && . ./export-variables && ./terraform-plan.sh" 
+                }                        
+
+        stage('Apply Terraform') {
+               sh "cd ${WORKSPACE}/terraform/source/scripts && . ./export-variables && ./terraform-apply.sh"
+             }
+
+		stage('Connectivity Test') {
+				withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+					ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=ec2-user", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/test.yml'
+				}
+                }
+
+        stage('User Setup') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=ec2-user", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/user.yml'
+                }
+                }
+        stage('Install Pre-Requisities') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=ec2-user", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/pre-requisites.yml'
+                }
+                }
+
+        stage('Install JDK') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=jbossadm", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/jdk.yml'
+                }
+                }
+        stage('Install JBOSS') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=jbossadm", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/jboss.yml'
+                }
+                }
+
+        stage('Deploying Package') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=appserver -e remote_user=jbossadm", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/deploy.yml'
+                }
+                }
+
+        stage('webserver Setup') {
+                withEnv(['ANSIBLE_HOST_KEY_CHECKING=false']) { 
+                    ansiblePlaybook credentialsId: 'efreshid', extras: "-v -e remote_server=webserver -e remote_user=ec2-user", installation: 'Ansible 2.7.4' , inventory: 'playbooks/hosts', playbook: 'playbooks/webserver.yml'
+                }
+                }
+
+}

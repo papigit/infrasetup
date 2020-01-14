@@ -1,0 +1,36 @@
+---
+## Python Packages 
+#-----------------------
+pip_file: "pip-19.2.2.tar.gz"
+pexpect_file: "pexpect-4.7.0.tar.gz"
+boto_file: "boto3-1.9.207.tar.gz"
+pycrypto_file: "pycrypto-2.6.1.tar.gz"
+setuptools_file: "setuptools-41.1.0.zip"
+s3transfer_file: "s3transfer-0.2.1.tar.gz"
+ptyprocess_file: "ptyprocess-0.6.0.tar.gz"  
+future_file: "future-0.17.1.tar.gz"
+futures_file: "futures-3.3.0.tar.gz"
+dateutils_file: "dateutils-0.6.6.tar.gz"
+jmespath_file: "jmespath-0.9.4.tar.gz"
+docutils_file: "docutils-0.15.2.tar.gz"
+botocore_file: "botocore-1.12.207.tar.gz"
+
+awscli_package: "awscli-1.16.218.tar.gz"
+
+system_packages:
+      - "ksh"
+      - "csh"
+      - "dos2unix"
+      - "vim"
+      - "zip"
+      - "compat-libstdc++-33.x86_64"
+      - "unzip"
+      - "tar"
+      - "bzip2"
+      - "python-setuptools"
+      - "postgresql-devel"
+      - "gcc"
+      - "python-devel"
+      - "libyaml"
+
+download_location: "/{{ base_dir }}/src"

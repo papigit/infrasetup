@@ -1,0 +1,27 @@
+---
+###### S3 Details #########
+aws_bucket: " s3://ais3"
+aws_region: "ap-southeast-1"
+output_format: "json"
+
+######## Directories ###########
+
+base_dir: "apps"
+download_location: "/{{ base_dir }}/src"
+
+######## Jboss User Configuration  ############
+jboss_dir: "jboss"
+jboss_user: "jbossadm"
+jboss_user_home: "/home/{{ jboss_user }}"
+jboss_user_grp: "jbossgrp"
+
+######### Apache User Configuration ###########
+http_user: "httpadm"
+http_user_group: "httpadm"
+http_user_home: "/home/httpadm"
+
+###### Sudo User Configuration ############
+remote_user: "ec2-user"
+remote_user_home: "/home/{{ remote_user }}"
+
+ 		

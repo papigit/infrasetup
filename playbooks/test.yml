@@ -1,0 +1,6 @@
+---
+- name: Test connectivity
+  hosts: "{{ remote_server }}"
+  user: "{{ remote_user }}"
+  roles:
+   - name: test

@@ -1,0 +1,22 @@
+#!/bin/bash
+# @@@ ANSIBLE_MANAGED @@@
+# Author: Satheesh Papisetty
+# Script: HTTP Cycle script
+# Version: v1.0 - Script to cycle httpd instances for AWS Instances
+#-----------------------------------------------------
+
+runuser=`whoami`
+
+if [ "${runuser}" == "{{ http_user }}" ] ; then
+      sudo /usr/sbin/httpd -d {{ apache_home }} -k $1
+      if [ $? -ne 0 ]; then
+         echo "ERROR: HTTPD INSTANCE NOT STARTED"
+      else
+         echo "OK"
+      fi
+
+elif [ "${runuser}" != "{{ http_user }}" ] ; then
+   echo ":> User not {{ http_user }}... "
+   echo "ERROR: HTTPD INSTANCE NOT STARTED"
+   exit 1
+fi

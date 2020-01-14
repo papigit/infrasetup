@@ -1,0 +1,25 @@
+---
+- name: create usergroup
+  group:
+   name: "{{jboss_user_grp }}"
+   state: present
+  become: true
+
+- name: create user
+  user:
+   name: "{{ jboss_user }}"
+   state: present
+   createhome: yes
+   group: "{{ jboss_user_grp }}"
+   generate_ssh_key: yes
+  become: true
+  
+- name: copy ssh keys
+  copy:
+   src: "{{ remote_user_home }}/.ssh/authorized_keys"
+   dest: "{{ jboss_user_home }}/.ssh/authorized_keys"
+   remote_src: true
+   owner: "{{ jboss_user }}"
+   group: "{{ jboss_user_grp }}"
+   mode: 0644
+  become: true

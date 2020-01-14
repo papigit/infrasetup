@@ -1,0 +1,3 @@
+---
+supermarket_war_file: "supermarket.war"
+jboss_home: "/{{ jboss_dir }}/eap/6.4/jboss-eap"

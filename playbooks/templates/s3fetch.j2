@@ -1,0 +1,3 @@
+#/bin/sh
+aws s3 cp {{ aws_bucket }}/$1/$2 $3
+chmod -R 777 {{ download_location }}/$2

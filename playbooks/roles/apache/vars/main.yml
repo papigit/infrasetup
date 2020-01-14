@@ -1,0 +1,6 @@
+---
+apache_support: "/{{ base_dir }}/support"
+apache_home: "/{{ base_dir }}/httpd"
+
+httpd_listen_port: "80"
+alb_port: "8000"

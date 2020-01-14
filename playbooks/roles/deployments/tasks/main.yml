@@ -1,0 +1,38 @@
+---
+- name: Register Ip Address
+  shell: hostname
+  register: appserverip
+- debug: var=appserverip
+
+- name: Download Deployment Pacakge
+  shell: "./s3fetch.sh binaries {{ supermarket_war_file }} {{ download_location }}"
+  args:
+   chdir: "/tmp/"
+   warn: false
+
+- name: deploying War file
+  copy:
+   src: "{{ download_location }}/{{ supermarket_war_file }}"
+   dest: "{{ jboss_home }}/standalone/deployments/{{ supermarket_war_file }}"
+   remote_src: true
+
+- name: Taking backup of standalone.conf
+  copy:
+   src: "{{ jboss_home }}/bin/standalone.conf"
+   dest: "{{ jboss_home }}/bin/standalone.conf_bkp"
+   remote_src: true
+
+- name: Setting JVM Heap Size
+  lineinfile:
+   dest: "{{ jboss_home }}/bin/standalone.conf"
+   regexp: '-Xms'
+   line: 'JAVA_OPTS="-Xms256m -Xmx256m -XX:MaxPermSize=128m -Djava.net.preferIPv4Stack=true"'
+   state: present
+
+
+- name: Restarting jboss
+  shell: "nohup sh standalone.sh -b {{ appserverip.stdout }} -bmanagement {{ appserverip.stdout }} --server-config=standalone.xml &"
+  args:
+   chdir: "{{ jboss_home }}/bin"
+  environment:
+   JAVA_HOME: "{{ java_home }}"

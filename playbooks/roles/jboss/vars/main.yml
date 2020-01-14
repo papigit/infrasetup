@@ -1,0 +1,5 @@
+---
+######## Jboss Configuration  ############
+jboss_home: "/{{ jboss_dir }}/eap/6.4/jboss-eap"
+java_home: "/{{ jboss_dir }}/java/1.8/jdk1.8.0_191"
+jboss6_file: "jboss-eap-6.4.tgz"

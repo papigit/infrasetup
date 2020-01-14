@@ -1,0 +1,9 @@
+set +x
+export no_proxy=169.254.169.254,localhost,127.0.0.1
+export KMS_KEY_ID="75b6b2d5-f73a-4c5b-a876-763e3e9ebda6"
+export ENVNAME="dev"
+export PROJECT="terraform"
+export TF_LANDSCAPE_ENABLED="false"
+export PROFILE="${ENVNAME}-s3"
+export S3_BUCKET="ais3"
+export PATH=/home/jbossadm:$PATH

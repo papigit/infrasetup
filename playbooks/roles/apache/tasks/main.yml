@@ -1,0 +1,143 @@
+---
+- name: Install httpd
+  yum:
+   name: httpd
+   state: present
+  become: true
+
+- name: set host list
+  set_fact:  
+    alb_dns: "{{ item }}"
+  with_inventory_hostnames:
+      - alb
+- debug: msg={{ alb_dns }}
+  become: true
+
+- name: Register Ip Address
+  shell: hostname
+  register: webserverip
+- debug: var=webserverip
+  become: true
+
+- name: Create base & support directories
+  file: 
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: "{{ http_user }}"
+    group: "{{ http_user_group }}"
+    mode: 0755
+  with_items:
+      - "{{ apache_home }}"
+      - "{{ apache_support }}/logs/httpd"
+      - "{{ apache_support }}/dump/httpd"
+  become: true
+
+- name: creating sub folders directories
+  file: 
+   path: "{{ item }}" 
+   state: directory 
+   recurse: yes 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+   mode: 0755
+  with_items:
+        - "{{ apache_home }}/conf"
+        - "{{ apache_home }}/ssl"
+        - "{{ apache_home }}/bin"
+  become: true
+
+- name: Create Symbolic link for modules...!
+  file: 
+   src: "{{ item.src }}"
+   dest: "{{ item.dest }}"
+   state: link 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+  with_items:
+      - { src: "/etc/httpd/modules", dest: "{{ apache_home }}/modules" }
+      - { src: "/etc/httpd/conf.d", dest: "{{ apache_home }}/conf.d" }
+  become: true
+
+- name: Copy the Configuration files
+  copy: 
+   src: "{{ item.src }}"
+   dest: "{{ item.dest }}"
+   mode: 0755
+   remote_src: true
+  with_items:
+      - { src: "/etc/httpd/conf/magic", dest: "{{ apache_home }}/conf/magic" }
+  become: true
+
+- name: creating sub folders directories
+  file: 
+   path: "{{ item }}" 
+   state: directory 
+   recurse: yes 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+   mode: 0755
+  with_items:
+        - "{{ apache_support }}/logs/httpd/run"
+        - "{{ apache_support }}/logs/httpd/run/sslcache"
+  become: true
+
+- name: Create Symbolic link for logs...!
+  file: 
+   src: "{{ apache_support }}/logs/httpd"
+   dest: "{{ apache_home }}/logs"
+   state: link 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+  become: true
+
+- name: copy httpd.conf template
+  template: 
+   src: httpd.conf.j2 
+   dest: "{{ apache_home }}/conf/httpd.conf" 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+  become: true
+
+- name: Copy http_ctl script template
+  template: 
+   src: httpd_ctl.sh.j2 
+   dest: "{{ apache_home }}/bin/httpd_ctl.sh" 
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+   mode: 0755
+  become: true
+
+- name: stop httpd instance
+  shell: "./httpd_ctl.sh stop"
+  args:
+   chdir: "{{ apache_home }}/bin/"
+   executable: /bin/bash
+   warn: false
+  register: stop_httpd_out
+  become_user: "{{ http_user }}"
+  become: true
+
+- debug: msg="{{ stop_httpd_out.stdout_lines }}"
+  when: stop_httpd_out.changed == true
+  become: true
+
+- pause:
+    seconds: 20
+  become_user: "{{ http_user }}"
+  become: true
+
+- name: start httpd instance
+  shell: "./httpd_ctl.sh start"
+  args:
+   chdir: "{{ apache_home }}/bin/"
+   executable: /bin/bash
+   warn: false
+  register: start_httpd_out
+  become_user: "{{ http_user }}"
+  become: true
+
+- debug: msg="{{ start_httpd_out.stdout_lines }}"
+  when: start_httpd_out.changed == true
+  become_user: "{{ http_user }}"
+  become: true

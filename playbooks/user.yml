@@ -1,0 +1,6 @@
+---
+- name: user creation
+  hosts: "{{ remote_server }}"
+  user: "{{ remote_user }}"
+  roles:
+   - name: user-setup

@@ -1,0 +1,33 @@
+---
+- name: create usergroup
+  group:
+   name: "{{ http_user_group }}"
+   state: present
+  become: true
+
+- name: create user
+  user:
+   name: "{{ http_user }}"
+   state: present
+   createhome: yes
+   group: "{{ http_user_group }}"
+   generate_ssh_key: yes
+  become: true
+  
+- name: copy ssh keys
+  copy:
+   src: "{{ remote_user_home }}/.ssh/authorized_keys"
+   dest: "{{ http_user_home }}/.ssh/authorized_keys"
+   remote_src: true
+   owner: "{{ http_user }}"
+   group: "{{ http_user_group }}"
+   mode: 0644
+  become: true
+
+- name: Add a line to a file if the file does not exist, without passing regexp
+  lineinfile:
+   path: /etc/sudoers
+   line: "httpadm  ALL=(ALL) NOPASSWD: /etc/init.d/httpd,/usr/sbin/httpd" 
+   backup: yes
+   validate: /usr/sbin/visudo -cf %s
+  become: true
