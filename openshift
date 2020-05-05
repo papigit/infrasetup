@@ -1,0 +1,68 @@
+Project/Namespace
+In Kubernetes, the concept of Namespace is used to separate resources. In the same namespace, the name of an object must be unique in its classification, but objects distributed in different namespaces can have the same name. OpenShift inherits the concept of the Kubernetes namespace, and defines the concept of the Project object on top of it. Each Project will be associated with a Namespace, and you can even simply think that Project is a Namespace.
+
+Pod
+Containers running on OpenShift will be "wrapped" by an object called Pod, and users will not directly see the Docker container itself. Technically, Pod is actually a special kind of container.
+Common commands: oc get pod (view all pods), oc describe pod <pod-name> (view detailed information of the pod)
+oc logs <pod-name> (check pod log), oc rsh <pod-name> (you can enter pod to execute commands)
+
+Service
+The container is a non-persistent object. All modifications to the container will be lost by default after the container is destroyed. After the same Docker image is instantiated to form a container, it will revert to the state originally defined by this image and obtain a new IP address.
+In order to overcome the changes in connection information caused by container changes, Kubernetes provides a component called Service. When deploying an application, we will create a Service object for the application. The Service object will be associated with one or more Pods of the application. At the same time, each Service will be assigned an IP address, which is relatively constant. By accessing this IP address and the corresponding port (or service domain name), the request will be forwarded to the corresponding port of the corresponding Pod.
+Note: Service provides a stable population that leads to the back-end Pod cluster, but the Service's IP address is only visible to the nodes and containers inside the cluster (unreachable outside). For external applications or users, this address is unreachable. (The format of the service domain name is <SERV 工 CE NAME>. <PROJECT NAME>. Svc.cluster.local)
+Test == "Enter the pod internal execution command through oc rsh <pod-name>: curl <service-ip>: <service-port>, you can see that the access is successful.
+Common commands: oc get svc (view all service list under the current project)
+
+Router and Route
+A Route will be associated with a Service and bound to a domain name (externally reachable). Route rules will be loaded by the Router. When the user accesses the application through the specified domain name, the domain name will be resolved and pointed to the computing node where the Router is located. The Router obtains this request, and then forwards it to the Service corresponding to this domain name according to the Route rule definition. Service will then do a load banlance and forward the request to the Pod container instance associated with the backend.
+PS: In fact, the Router component is a Haproxy running in the container, which is a specially customized Haproxy.
+Common commands: oc get route (view all routes in the project)
+
+Secure Route (Turn on HTTPS)
+Secure Route is actually a kind of route, but TLS termination is turned on. Note: TLS (Transport Layer Security) transport layer security protocol, its predecessor is Secure Sockets Layer (Secure Sockets Layer, abbreviated as SSL) is a security protocol, the purpose is to provide security and data integrity for Internet communication.
+Three TLS termination types:
+1.Edge: TLS is terminated on the router, and then non-SSL network packets are forwarded to the backend pod. Therefore, a TLS certificate needs to be installed on the router. If not installed, the router's default certificate will be used. (That is, install the certificate on the Route, the pod internal program does not install the certificate, so the external is https and the internal is http)
+2.Passthrough: The encrypted network packet is sent directly to the pod, and the router does not do TLS termination, so there is no need to configure a certificate or key on the router. (That is, the certificate is not installed on the Route, but the certificate is installed inside the pod, so the external is http and the internal is https)
+3. The-encryption: It is a variant of edge. First, a certificate will be used on the router for TSL termination, then another certificate will be used for encryption, and then sent to the back-end pod. Therefore, the entire network path is encrypted. (All internal and external https)
+Note:  With Secure Route, the access path is all https.
+
+Persistent Storage
+The container is non-persistent by default, and all changes will be lost when the container is destroyed. But the reality is that most traditional applications are stateful, so it is required that the data in some containers must be persistent, and the container cloud platform (OCP: openshift container platform) must provide persistent storage for the container.
+In addition to supporting the mounting method of Docker persistent volumes, OpenShift also provides a persistent supply model, namely Persistent Volume (Persistent Volume, PV) and Persistent Volume Claim (Persistent Volume Request, PVC) model.
+In the PV and PVC models, cluster administrators create a large number of PVs with different sizes and different characteristics. When users deploy applications, they explicitly declare the need for persistence and create PVCs. The user defines the required storage size and access method in the PVC (read-only or readable and writable; exclusive or shared). The OpenShift cluster will automatically find the PV and PVC that meet the requirements and automatically dock.
+Common commands: oc get pv (view all persistent volumes, admin permission required), oc get pvc (view all persistent volume requests)
+
+7. Registry
+OpenShift provides an internal Docker image warehouse (Registry), which is used to store the images generated by users through the built-in Source to Image image building process. Whenever S2I completes the image construction, it will push the completed image to the internal image warehouse.
+Registry components are provided as containers by default, so we can check the status of the Registry container through oc get pod -n default. Similarly, the service information corresponding to the Registry container can be viewed through oc get svc -n default.
+
+8. Source to Image (S2I)
+A typical S21 process includes the following steps.
+1.The user enters the address of the source code repository.
+2️ The user selects the basic image built by S2I (also called Builder image). The Builder image contains the software and configuration required by applications such as operating systems, programming languages, and frameworks. OpenShift provides Builder images of multiple programming languages by default, such as Java, PHP, Ruby, Python, Perl, etc. Users can also customize their Builder images according to their own needs and publish them in the service directory for users to choose.
+3.User or system triggers S2I build. OpenShift will instantiate the S2I build actuator.
+4.S2I build executor will download the source code from the user specified code repository.
+5.S2I Build Actuator Instantiated Builder image. The code will be injected into the Builder image.
+6.Builder image will perform source code compilation, construction and deployment according to predefined logic.
+7.S2I build executor will complete the operation of the Builder image to generate a new Docker image.
+8.The S2I build actuator pushes the new image to the image repository (Registry) inside OpenShift.
+9.The S2I build actuator pushes the new image to the image repository (Registry) inside OpenShift.
+10.S2I build executor updates the Image Stream information related to the build.
+Note: After the S2I is built, OpenShift will instantiate and deploy the image to the cluster according to the user-defined deployment logic. In addition to accepting the source code repository address as input, S2I also accepts Dockerfile and binary files as input for building. Users can even customize the structure completely
+
+9. Image Stream
+OpenShift defines the concept of Image Stream to manage a collection of images. You can define multiple image names and tags in an Image Stream, and then point to the actual Docker image. Use the oc get / describe is command to view Image Stream information.
+10. Mirror construction: Build Config and Build
+Build Config is used to guide the application building process, including source code location, build strategy, build trigger configuration, etc. You can view all build config information through oc get bc. If you want to further obtain the specific configuration information of a Build Config, you can use the oc get bc <build-config-name> -o yaml command.
+Build Config is just static configuration information. OpenShift can trigger multiple actual build instances based on this static configuration information. The build instance is called Build. A Build Config can be triggered multiple times to generate multiple Builds. With the oc get build command, you can view the generated build list. Run the oc logs build / <build-name> command to view detailed information about this build. If you want to perform a new build, use the oc new-build <svc-name> command.
+
+11. Mirror deployment: Deployment Config and Deploy
+Deployment Config describes the parameters and requirements for image deployment. Use the oc get dc command to view the list of Deployment Config in the project. Run the oc get dc <svc-name> -o yaml command to view the detailed definition of the DeploymentConfig. Trigger (trigger) is defined in Deployment Config, so that the deployment is automatically triggered under certain conditions, such as when S2I is completed.
+Each Deployment Config can be triggered multiple times, and each trigger is called a Deploy. Each time Deploy generates a Replication Controller object to monitor the status of the container. Replication Controller (Replication Controller) is a component in Kubernetes that is responsible for monitoring the actual number of containers. You can view the list of Replication Controller through oc get rc.
+Openshift's update deployment strategy includes Rolling and Recreate.
+1.Rolling (rolling update) means that when Openshift is deployed, it will wait for a certain number of new version container instances to start, and then terminate a certain number of old version container instances. In this way, the instances in the container cluster are replaced and updated one by one . This method can ensure that the service will not be interrupted during the update release process.
+2.Recreate (recreate) means to stop all old container applications before updating, and then start a batch of new versions of container instances.
+12. Replication Controller
+In OpenShift, the number of container instances for each deployed application is defined in its Deployment Config. During actual deployment, OpenShift instantiates a Replication Controller for each deployment and passes this value to the associated Replication Controller. Replication Controller is a component of Kubernetes, which is responsible for maintaining the number of container instances.
+You can use the oc scale dc <service-name> --replicas = n command to elastically scale the service application to n instances.
+ 
