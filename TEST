@@ -1,0 +1,48 @@
+Unit Test
+Unit testing is the procedure in which the individual units of source code are tested with control data, usage procedures and operating procedures specific to this unit of source code - to ensure that it is fit for use. In other words, Unit Test validates the smallest testable part of an application generally isolated from the entire system as a whole. In place of the complete system - substitutes like method stubs, mock objects, fakes and test harnesses are used to perform the unit test in isolation.
+
+System Test(ST)
+System test is black box testing performed to verify that the application works as per the functional specification. It focuses on validating inputs and expected outputs at the application level. Typically the system will be tested in a standalone configuration with stubs/test harnesses simulating external interfaces. ST includes regression testing to verify that changes made have not adversely affected existing functionality.?
+
+System Integration Testing(SIT)
+SIT verifies that the system meets business and functional requirements when running in an integrated environment with target interfaces. It focuses on the integration of the application with ALL the interfacing systems as defined in the technical specifications. SIT Includes testing with ALL upstream and downstream systems and data sources. It includes regression testing. 
+
+Performance Test (Perf T)
+Performance testing includes verifying application response timings and processing timings when running under normal load, increased load and stress conditions. Performance testing must verify that the end-to-end solution is able to meet transaction loadings when running under increased load and stress conditions. eg: each application in the e2e business flow is able to support the performance requirements. Performance Testing consists of response time testing, load test, stress test and volume test to ensure that the application meets performance requirements and operates within any agreed SLAs.
+
+Normal workload is defined as the expected volume of transactions experienced on a typical business day – there will be peak times during the normal day when transaction volumes are higher eg: US market open and the peaks should be included in the performance test.
+
+Load Test:
+Performance test under increased loading:  This is intended to test for increased workloads anticipated over time.  Eg: The expected volume of transactions experienced on a typical business day is expected to increase by 30% in year 2 – hence we need to verify that the application continues to perform when operating under the increased loading.
+
+Stress Test:
+Running the application under increased transaction loading and data volumes to determine how the application behaves when running under stress conditions. It is typical to ramp up the transaction loading in stages eg:  100% 200%, 300% etc. until you find the point at which the application no longer meets its performance requirements due to the load under which it is operating.  It is also important to understand how the application behaves when operating under stress conditions,  does it queue up transactions and process them correctly but with slower performance or does it crash and loose in-flight transactions?
+
+Endurance Test:
+Also known as ‘soak test’.  The aim is to run the application under normal load for a period of time to verify that performance continues to meet requirements when running for a duration of time as it will in production. The intention of this test is to identify memory leaks or log files that have run out of space – to identify defects that only present themselves when you have been running the application for a period of time. The length of time is determined by the operational procedures
+
+User Acceptance Testing/UAT
+UAT confirms that the application meets business requirements when operating in a real-world scenario.  It provides verification that the system is fit for purpose when used to perform actual business processes. It focuses on testing key business scenarios in an integrated environment to gain business acceptance of the system.  UAT includes testing the end-2-end processes and usability of the solution. UAT must be conducted by end users or their appointed SMEs who understand how business processes are performed in the live environment. A business stakeholder or product owner must be identified to be accountable for signing-off UAT prior to release into production.
+
+Failover and Recovery Test
+Verifies that the system meets operational expectation when subject to failures at various levels to include application and internal component failure, infrastructure failure, hardware failure, network, power failure etc..The test consist of simulating different types of component and infrastructure failures and monitoring application functionality during the failure and recovery.
+
+Note: Failover and Recovery testing occurs within a single site (instance),  this is not site failover testing.
+
+Security Test
+Performed by GIS to verify that systems and databases comply with applicable security standards. Depending on the assessment by GIS, security test may include Security Acceptance Test (SAT), Application Vulnerability Test (AVT) and Penetration Test
+
+Data Migration Test
+Performed to verify that migrated data has been converted according to agreed conversion specifications. When required, data migration testing should be performed during system test phase and is in addition to testing carried out by the migration team. It follows the same task as system testing
+
+Operability Acceptance Test(OAT)
+OAT is the process by which the technical operations team accept that the system can be installed and supported in the production environment.  OAT includes installation and rollback, failover and recovery scenarios, system monitoring and alerting functionality testing.
+
+Regression Testing (RT)
+Regression testing is performed to ensure that existing functionality continues to work correctly following changes made to other functionality or to interfacing systems. Changes may include software enhancements, patches, configuration changes, data changes etc. During regression testing, new defects or regressions may be uncovered. Regression testing can be performed at system test, SIT, UAT and non-functional test levels depending on the type of changes that have been implemented.  A Change impact analysis should be performed to determine which areas of the application could be affected by the proposed changes. These areas may include functional or non-functional areas of the system.
+
+Functional Testing
+Functional testing is testing of an application's functionality as defined in the system requirements. Functional testing can be done manually or can be automated. Automated Functional Testing is an integral part of DevOps build release pipeline.
+
+Automated Functional Testing
+Functional Testing with Selenium Automates Browsers. Genie is used as recommended platform for Automated Functional/Behavior Driven Development and testing in Vx Platform.
