@@ -1,0 +1,170 @@
+aws splunk
+
+Splunk is a platform that makes machine data accessible and usable. By monitoring and
+analyzing everything from customer clickstreams and transactions to security events and
+network activity, Splunk software helps customers gain valuable Operational
+Intelligence from their machine-generated data. With a full range of powerful search,
+analysis, and visualization capabilities and prepackaged content for use cases, users can
+quickly discover and share insights.
+Splunk Enterprise enables you to search, monitor, and analyze machine data from any
+source to gain valuable intelligence and insights across your entire organization. With
+Splunk Enterprise on the AWS Cloud, you gain the flexibility of the AWS infrastructure to
+tailor a deployment specific to your needs, and you can modify your Splunk deployment on
+demand, as these needs change. Lead times waiting for hardware to change or to scale your
+Splunk deployment are no longer a consideration with AWS.
+
+
+how toreduce cost?
+
+
+
+
+
+Security Checks on vx pipeline
+
+here let me tell you how we implemted security practise for our docker applications
+
+There are different stages defined in jenkins Pipeline
+
+1) Checkout Application source code with Dockierfile from bitbucket
+2) Build App
+3)Perform Unit Test AND cod scanning	
+4) Notary Signer 
+
+Notary integrated as part of Vx artifact management implementing  CNCF The Update Framework (TUF)
+
+xray
+Run continuous vulnerability scan against all repository and block artifacts not meeting STS policy
+
+
+5) Pushed signed image to Registry
+
+
+Vulnerability Policy
+
+X-Ray block vulnerable artifacts
+
+Notary integrated as part of Vx artifact management implementing  CNCF The Update Framework (TUF)
+
+
+
+
+
+6) Deploy container to non-production cluster (non-signed image)
+
+7) Test the application in non-prod cluster
+
+
+
+
+
+
+
+
+
+8) PTP sign image and promote it to production registry
+
+PTP promote artifacts that passed all compliance as code declarative criteria, to production local repo and sign the mage with Notary service
+
+PTP Docker Content Trust (DCT) Implementation
+---------------------------------------------
+1. PTP in general will pull non prod Docker Image (passed vulnerability policy) from Docker-Release registry, sign it using isolated signer and push it to Docker-Production registry.
+
+2. X-Ray will prevent images failing defined vulnerability policies from being downloaded, thus preventing PTP from promoting vulnerable images to production registry.
+
+3. Xray will also trigger policy driven invalidation of signatures in case of failed scans
+
+ 
+
+9) Rule based Signing & Revocation
+
+Vx managed service sign or revoke signature.
+
+10) Deploy container to production cluster (signed image)
+
+Reusable Admission Contoller (supply by platform) e.g. IBM Portieris with a webhook to enforce content trust. Only signed image with all required signatures can run.
+
+
+Admission Controller
+
+1. Enforcing content trust.
+
+2. Allow creation of image securities policy for each Kubernetes namespace / cluster level and enforce different levels of trust for different images.
+
+3. Enforce trust pinning, block the creation of resources that use untrusted image.
+
+
+
+
+
+
+
+
+
+Deploy container to production cluster (signed image)
+
+Bitbucket
+
+Test Application in Non-Prod Cluster
+
+Kubernetes Custom Admission Controller
+
+Reusable Admission Contoller (supply by platform) e.g. IBM Portieris with a webhook to enforce content trust. Only signed image with all required signatures can run.
+
+Admission Controller
+
+1. Enforcing content trust.
+
+2. Allow creation of image securities policy for each Kubernetes namespace / cluster level and enforce different levels of trust for different images.
+
+3. Enforce trust pinning, block the creation of resources that use untrusted image.
+
+Vanilla Docker Deploy without Kubernetes
+
+Docker Content Trust (DCT) enable in Docker daemon mandating only trusted signed image can be pull and run
+
+K8 admission controller verification of images
+
+Kubernetes Custom Admission Controller
+
+CVE
+
+PTP Docker Content Trust (DCT) Implementation
+
+1. PTP in general will pull non prod Docker Image (passed vulnerability policy) from Docker-Release registry, sign it using isolated signer and push it to Docker-Production registry.
+
+2. X-Ray will prevent images failing defined vulnerability policies from being downloaded, thus preventing PTP from promoting vulnerable images to production registry.
+
+3. Xray will also trigger policy driven invalidation of signatures in case of failed scans
+
+
+
+
+
+Example for notray:
+
+Developers pulling code from different hosting services like Docker Hub, code and artifact hosts, and 3rd party libraries.
+
+DockerHub
+Azure Container Registry
+Google Container Registry
+Quay Container Registry
+Amazon Elastic Container Registry
+GitLab Container Registry
+
+Moving files and images around from one registry to another can create weak links in the integrity chain.
+
+example;
+if any of the user machine is comprimisted  then changes could be made and/or malicious code could be injected into an image (container, file, code, etc.)
+This would be done without the user even knowing, 
+the user would then upload the injected image under his account name, thereby testifying to its authenticity, and making it available to spread to more machines.
+
+
+to avoid this
+CodeNotary is an application for verifying continuous trust throughout the entire DevOps process.
+CodeNotary is simple with 1 step to sign and 1 step to verify.
+You can sign your source code, libraries, builds, and containers using the command syntax vcn sign in your CLI. The command immutably stores your signatures on the blockchain.
+block chain base code authentication
+
+Use the command vcn verify in order to verify the integrity of the digital assets you use. 
+This also enables anyone to verify the authenticity of your images, containers, and code against the distributed ledger where their hashes are stored.
